@@ -23,7 +23,7 @@ class BioSyncApp extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────
-// APP SHELL — gestisce la navbar globale
+// APP SHELL
 // ─────────────────────────────────────────────
 
 class AppShell extends StatefulWidget {
@@ -44,7 +44,7 @@ class _AppShellState extends State<AppShell> {
       const ExercisesScreen(),
       HomeBody(onNavTap: _onNavTap),
       const PlaceholderScreen(label: 'Calendario'),
-      const PlaceholderScreen(label: 'Impostazioni'),
+      const SettingsScreen(),
     ];
 
     return Scaffold(
@@ -144,6 +144,7 @@ class HomeBody extends StatefulWidget {
 
 class _HomeBodyState extends State<HomeBody> with SingleTickerProviderStateMixin {
   bool _alertVisible = true;
+  bool _smartBreakVisible = true; // Task 2 — banner pausa intelligente
   late AnimationController _ringController;
   late Animation<double> _ringAnimation;
 
@@ -170,7 +171,7 @@ class _HomeBodyState extends State<HomeBody> with SingleTickerProviderStateMixin
             _buildTopBar(),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
+                padding: const EdgeInsets.fromLTRB(18, 0, 18, 80),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -180,6 +181,9 @@ class _HomeBodyState extends State<HomeBody> with SingleTickerProviderStateMixin
                     const SizedBox(height: 16),
                     _buildMetricsRow(),
                     const SizedBox(height: 14),
+                    // Task 2 — Azione 2.1: banner pausa intelligente
+                    if (_smartBreakVisible) _buildSmartBreakBanner(),
+                    if (_smartBreakVisible) const SizedBox(height: 14),
                     if (_alertVisible) _buildAlertCard(),
                     if (_alertVisible) const SizedBox(height: 14),
                     _buildSectionTitle(),
@@ -212,6 +216,57 @@ class _HomeBodyState extends State<HomeBody> with SingleTickerProviderStateMixin
           ),
         ),
       ],
+    );
+  }
+
+  // ── Task 2 / Azione 2.1: Smart Break Banner ──────────────────────────────
+  Widget _buildSmartBreakBanner() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const SmartBreakScreen()));
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1A1A),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(children: [
+          Container(
+            width: 38, height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFF333333),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.coffee_outlined, color: Color(0xFFE8C87A), size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Text('Hai 18 minuti liberi', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFFE8C87A))),
+              const SizedBox(height: 2),
+              const Text('Pausa perfetta prima del prossimo meeting. Stacca adesso?',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFAAAAAA), height: 1.35)),
+            ]),
+          ),
+          const SizedBox(width: 8),
+          Row(children: [
+            GestureDetector(
+              onTap: () => setState(() => _smartBreakVisible = false),
+              child: const Text('Dopo', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF777777))),
+            ),
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8440A),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text('Sì!', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white)),
+            ),
+          ]),
+        ]),
+      ),
     );
   }
 
@@ -359,85 +414,724 @@ class _HomeBodyState extends State<HomeBody> with SingleTickerProviderStateMixin
 }
 
 // ─────────────────────────────────────────────
-// EXERCISES SCREEN  (schermata 2)
+// TASK 2 — SMART BREAK SCREEN (Azione 2.2 + 2.3)
+// ─────────────────────────────────────────────
+
+class SmartBreakScreen extends StatefulWidget {
+  const SmartBreakScreen({super.key});
+  @override
+  State<SmartBreakScreen> createState() => _SmartBreakScreenState();
+}
+
+class _SmartBreakScreenState extends State<SmartBreakScreen> {
+  int? _selectedOption; // 0=rapido, 1=profondo
+
+  static const _options = [
+    {
+      'emoji': '⚡',
+      'title': 'Reset Rapido',
+      'duration': '5 min',
+      'description': 'Respirazione + stretching in piedi. Ideale tra un meeting e l\'altro.',
+      'color': Color(0xFFFFF3EF),
+      'accentColor': Color(0xFFE8440A),
+    },
+    {
+      'emoji': '🌊',
+      'title': 'Reset Profondo',
+      'duration': '15 min',
+      'description': 'Meditazione guidata + mobilità. Per ricaricarsi davvero.',
+      'color': Color(0xFFE8F4FF),
+      'accentColor': Color(0xFF2979C9),
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAF8F5),
+      body: SafeArea(
+        child: Column(children: [
+          // App bar
+          Padding(
+            padding: const EdgeInsets.only(left: 4, top: 4, right: 18, bottom: 0),
+            child: Row(children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Color(0xFF555555)),
+                onPressed: () => Navigator.pop(context),
+              ),
+              const Text('Pausa Intelligente',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+            ]),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 24),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                // Header informativo
+                Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(children: [
+                    const Text('☕', style: TextStyle(fontSize: 28)),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        const Text('18 minuti prima del prossimo meeting',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFFE8C87A))),
+                        const SizedBox(height: 4),
+                        const Text('Scegli il tipo di pausa che vuoi fare. Staccare adesso ti aiuterà a essere più presente.',
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFAAAAAA), height: 1.4)),
+                      ]),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 24),
+                RichText(
+                  text: const TextSpan(
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), height: 1.2, fontFamily: 'Nunito'),
+                    children: [
+                      TextSpan(text: 'Che tipo di\n'),
+                      TextSpan(text: 'reset', style: TextStyle(color: Color(0xFFE8440A))),
+                      TextSpan(text: ' vuoi?'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Azione 2.2 — opzioni reset
+                ...List.generate(_options.length, (i) {
+                  final opt = _options[i];
+                  final isSelected = _selectedOption == i;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: GestureDetector(
+                      onTap: () => setState(() => _selectedOption = i),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        decoration: BoxDecoration(
+                          color: isSelected ? opt['color'] as Color : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected ? (opt['accentColor'] as Color).withOpacity(0.5) : const Color(0xFFEEEEEE),
+                            width: isSelected ? 1.5 : 0.5,
+                          ),
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+                        ),
+                        padding: const EdgeInsets.all(16),
+                        child: Row(children: [
+                          Container(
+                            width: 52, height: 52,
+                            decoration: BoxDecoration(
+                              color: (opt['accentColor'] as Color).withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(opt['emoji'] as String, style: const TextStyle(fontSize: 26)),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Row(children: [
+                                Text(opt['title'] as String,
+                                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: (opt['accentColor'] as Color).withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(opt['duration'] as String,
+                                      style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: opt['accentColor'] as Color)),
+                                ),
+                              ]),
+                              const SizedBox(height: 4),
+                              Text(opt['description'] as String,
+                                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF888888), height: 1.4)),
+                            ]),
+                          ),
+                          if (isSelected)
+                            Container(
+                              width: 22, height: 22,
+                              decoration: BoxDecoration(
+                                color: opt['accentColor'] as Color,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.check, color: Colors.white, size: 14),
+                            )
+                          else
+                            Container(
+                              width: 22, height: 22,
+                              decoration: BoxDecoration(
+                                border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                        ]),
+                      ),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 28),
+                // Azione 2.3 — CTA Inizia Reset
+                AnimatedOpacity(
+                  opacity: _selectedOption != null ? 1.0 : 0.35,
+                  duration: const Duration(milliseconds: 200),
+                  child: GestureDetector(
+                    onTap: _selectedOption == null ? null : () {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (_) => SmartBreakSessionScreen(
+                          optionIndex: _selectedOption!,
+                          optionData: _options[_selectedOption!],
+                        ),
+                      ));
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFE8440A),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: _selectedOption != null
+                            ? [BoxShadow(color: const Color(0xFFE8440A).withOpacity(0.35), blurRadius: 14, offset: const Offset(0, 4))]
+                            : [],
+                      ),
+                      child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        Text('Inizia Reset', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+                        SizedBox(width: 8),
+                        Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                      ]),
+                    ),
+                  ),
+                ),
+              ]),
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// TASK 2 — SESSIONE DI DISTACCO (Azione 2.3)
+// ─────────────────────────────────────────────
+
+class SmartBreakSessionScreen extends StatefulWidget {
+  final int optionIndex;
+  final Map<String, dynamic> optionData;
+  const SmartBreakSessionScreen({super.key, required this.optionIndex, required this.optionData});
+  @override
+  State<SmartBreakSessionScreen> createState() => _SmartBreakSessionScreenState();
+}
+
+class _SmartBreakSessionScreenState extends State<SmartBreakSessionScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnim;
+  bool _isPlaying = true;
+  int _secondsLeft = 0;
+
+  static const _rapidSteps = [
+    '🌬️  Inspira 4 secondi, trattieni 2, espira 6. Ripeti 3 volte.',
+    '🙆  Alzati in piedi. Ruota le spalle indietro lentamente × 5.',
+    '👀  Guarda lontano dalla schermata per 20 secondi.',
+    '✅  Ottimo! Sei pronto per il prossimo impegno.',
+  ];
+  static const _deepSteps = [
+    '🧘  Siediti comodo, chiudi gli occhi. Lascia andare i pensieri.',
+    '🌬️  Respirazione 4-7-8: inspira 4, trattieni 7, espira 8. × 4.',
+    '🤸  Stretching collo e spalle: inclina la testa a destra, sinistra, avanti.',
+    '🧠  Visualizza il prossimo obiettivo. Come ti sentirai quando lo avrai completato?',
+    '✅  Reset completato. Sei ricaricato!',
+  ];
+
+  int _stepIndex = 0;
+  List<String> get _steps => widget.optionIndex == 0 ? _rapidSteps : _deepSteps;
+
+  @override
+  void initState() {
+    super.initState();
+    _secondsLeft = widget.optionIndex == 0 ? 300 : 900;
+    _pulseController = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat(reverse: true);
+    _pulseAnim = Tween<double>(begin: 0.9, end: 1.0).animate(
+        CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
+    _startTimer();
+  }
+
+  void _startTimer() {
+    Future.doWhile(() async {
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return false;
+      if (!_isPlaying) return true;
+      if (_secondsLeft <= 0) return false;
+      setState(() {
+        _secondsLeft--;
+        // avanza step ogni frazione del tempo totale
+        final totalSecs = widget.optionIndex == 0 ? 300 : 900;
+        final stepDuration = totalSecs ~/ _steps.length;
+        final elapsed = totalSecs - _secondsLeft;
+        final newStep = (elapsed ~/ stepDuration).clamp(0, _steps.length - 1);
+        _stepIndex = newStep;
+      });
+      return _secondsLeft > 0;
+    });
+  }
+
+  String get _timerLabel {
+    final m = _secondsLeft ~/ 60;
+    final s = _secondsLeft % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+  }
+
+  void _togglePlay() {
+    setState(() => _isPlaying = !_isPlaying);
+    if (_isPlaying) {
+      _pulseController.repeat(reverse: true);
+      _startTimer();
+    } else {
+      _pulseController.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Color accent = widget.optionData['accentColor'] as Color;
+    final Color bgColor = widget.optionData['color'] as Color;
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFFAF6F2),
+      body: SafeArea(
+        child: Column(children: [
+          // App bar
+          Padding(
+            padding: const EdgeInsets.only(left: 4, top: 4, right: 18),
+            child: Row(children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Color(0xFF555555)),
+                onPressed: () => Navigator.pop(context),
+              ),
+              Text(widget.optionData['title'] as String,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: bgColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(widget.optionData['duration'] as String,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: accent)),
+              ),
+            ]),
+          ),
+          const Spacer(),
+
+          // Visualizzazione animata — pulsazione
+          AnimatedBuilder(
+            animation: _pulseAnim,
+            builder: (context, _) => SizedBox(
+              width: 240, height: 240,
+              child: Stack(alignment: Alignment.center, children: [
+                Transform.scale(scale: _pulseAnim.value * 1.15,
+                  child: Container(width: 180, height: 180,
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withOpacity(0.08)))),
+                Transform.scale(scale: _pulseAnim.value * 1.05,
+                  child: Container(width: 180, height: 180,
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: accent.withOpacity(0.13)))),
+                Container(
+                  width: 150, height: 150,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: accent.withOpacity(0.18),
+                    border: Border.all(color: accent, width: 2),
+                  ),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Text(widget.optionData['emoji'] as String, style: const TextStyle(fontSize: 38)),
+                    const SizedBox(height: 6),
+                    Text(_isPlaying ? 'In corso' : 'In pausa',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: accent)),
+                  ]),
+                ),
+              ]),
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Timer
+          Text(_timerLabel,
+              style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), letterSpacing: 2)),
+          const SizedBox(height: 6),
+          const Text('rimangono', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFAAAAAA))),
+
+          const SizedBox(height: 24),
+
+          // Step corrente
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              child: Container(
+                key: ValueKey(_stepIndex),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: bgColor.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: accent.withOpacity(0.2), width: 0.5),
+                ),
+                child: Text(_steps[_stepIndex],
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF333333), height: 1.45)),
+              ),
+            ),
+          ),
+
+          const Spacer(),
+
+          // Step indicators
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: List.generate(_steps.length, (i) =>
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: i == _stepIndex ? 20 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: i == _stepIndex ? accent : accent.withOpacity(0.25),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            ),
+          )),
+          const SizedBox(height: 24),
+
+          // Play/pause
+          GestureDetector(
+            onTap: _togglePlay,
+            child: Container(
+              width: 54, height: 54,
+              decoration: BoxDecoration(
+                color: accent, shape: BoxShape.circle,
+                boxShadow: [BoxShadow(color: accent.withOpacity(0.35), blurRadius: 16, offset: const Offset(0, 4))],
+              ),
+              child: Icon(_isPlaying ? Icons.pause : Icons.play_arrow, color: Colors.white, size: 26),
+            ),
+          ),
+          const Spacer(),
+        ]),
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────
+// TASK 7 — SETTINGS SCREEN
+// ─────────────────────────────────────────────
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  // Azione 7.2 — valori configurabili
+  double _heartRateMax = 100;
+  double _spo2Min = 94;
+  double _sleepTarget = 8;
+  double _stepsTarget = 8000;
+  double _hydrationTarget = 2.5;
+  bool _smartBreakEnabled = true;
+  bool _anxietyAlertEnabled = true;
+  bool _savedIndicator = false;
+
+  void _save() {
+    setState(() => _savedIndicator = true);
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) setState(() => _savedIndicator = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      // Top bar
+      Padding(
+        padding: const EdgeInsets.fromLTRB(18, 12, 18, 8),
+        child: Row(children: [
+          const Icon(Icons.settings_outlined, size: 22, color: Color(0xFFE8440A)),
+          const SizedBox(width: 10),
+          const Text('Impostazioni', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+          const Spacer(),
+          if (_savedIndicator)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+              decoration: BoxDecoration(color: const Color(0xFFE8FFE8), borderRadius: BorderRadius.circular(20)),
+              child: const Row(mainAxisSize: MainAxisSize.min, children: [
+                Icon(Icons.check_circle_outline, size: 14, color: Color(0xFF2E7D32)),
+                SizedBox(width: 4),
+                Text('Salvato!', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Color(0xFF2E7D32))),
+              ]),
+            ),
+        ]),
+      ),
+      Expanded(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+
+            // ── Sezione 1: Limiti biometrici ────────────────
+            _sectionHeader('📊  Limiti Biometrici'),
+            _settingsCard(children: [
+              _sliderRow(
+                icon: '♥', label: 'FC massima', unit: 'bpm',
+                value: _heartRateMax, min: 80, max: 200, divisions: 120,
+                onChanged: (v) => setState(() => _heartRateMax = v),
+                displayValue: _heartRateMax.round().toString(),
+              ),
+              _divider(),
+              _sliderRow(
+                icon: '🫁', label: 'SpO2 minima', unit: '%',
+                value: _spo2Min, min: 85, max: 99, divisions: 14,
+                onChanged: (v) => setState(() => _spo2Min = v),
+                displayValue: _spo2Min.round().toString(),
+              ),
+            ]),
+
+            // ── Sezione 2: Obiettivi quotidiani ─────────────
+            _sectionHeader('🎯  Obiettivi Quotidiani'),
+            _settingsCard(children: [
+              _sliderRow(
+                icon: '💤', label: 'Ore di sonno', unit: 'h',
+                value: _sleepTarget, min: 4, max: 12, divisions: 8,
+                onChanged: (v) => setState(() => _sleepTarget = v),
+                displayValue: _sleepTarget.round().toString(),
+              ),
+              _divider(),
+              _sliderRow(
+                icon: '👟', label: 'Passi giornalieri', unit: '',
+                value: _stepsTarget, min: 2000, max: 20000, divisions: 18,
+                onChanged: (v) => setState(() => _stepsTarget = v),
+                displayValue: _stepsTarget.round().toStringAsFixed(0),
+              ),
+              _divider(),
+              _sliderRow(
+                icon: '💧', label: 'Idratazione', unit: 'L',
+                value: _hydrationTarget, min: 1.0, max: 4.0, divisions: 6,
+                onChanged: (v) => setState(() => _hydrationTarget = v),
+                displayValue: _hydrationTarget.toStringAsFixed(1),
+              ),
+            ]),
+
+            // ── Sezione 3: Notifiche e avvisi ───────────────
+            _sectionHeader('🔔  Avvisi & Notifiche'),
+            _settingsCard(children: [
+              _toggleRow(
+                icon: '☕', label: 'Pausa Intelligente',
+                subtitle: 'Suggerisce pause tra i meeting',
+                value: _smartBreakEnabled,
+                onChanged: (v) => setState(() => _smartBreakEnabled = v),
+              ),
+              _divider(),
+              _toggleRow(
+                icon: '🧠', label: 'Allerta Ansia',
+                subtitle: 'Notifica quando i livelli salgono',
+                value: _anxietyAlertEnabled,
+                onChanged: (v) => setState(() => _anxietyAlertEnabled = v),
+              ),
+            ]),
+
+            const SizedBox(height: 28),
+
+            // Riepilogo e salvataggio (Azione 7.2)
+            _buildSummaryCard(),
+            const SizedBox(height: 16),
+
+            // Bottone salva
+            GestureDetector(
+              onTap: _save,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8440A),
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: const Color(0xFFE8440A).withOpacity(0.30), blurRadius: 12, offset: const Offset(0, 4))],
+                ),
+                child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(Icons.save_outlined, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text('Salva Impostazioni', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
+                ]),
+              ),
+            ),
+          ]),
+        ),
+      ),
+    ]);
+  }
+
+  // ── Azione 7.2: riepilogo configurazione ─────────────────────────────────
+  Widget _buildSummaryCard() => Container(
+    decoration: BoxDecoration(
+      color: const Color(0xFFFFF3EF),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: const Color(0xFFE8440A).withOpacity(0.2), width: 0.5),
+    ),
+    padding: const EdgeInsets.all(14),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const Text('Riepilogo configurazione', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFFE8440A))),
+      const SizedBox(height: 10),
+      _summaryLine('FC massima', '${_heartRateMax.round()} bpm'),
+      _summaryLine('SpO2 minima', '${_spo2Min.round()}%'),
+      _summaryLine('Sonno obiettivo', '${_sleepTarget.round()} ore'),
+      _summaryLine('Passi obiettivo', '${_stepsTarget.round()}'),
+      _summaryLine('Idratazione obiettivo', '${_hydrationTarget.toStringAsFixed(1)} L'),
+      _summaryLine('Pausa Intelligente', _smartBreakEnabled ? 'Attiva' : 'Disattiva'),
+      _summaryLine('Allerta Ansia', _anxietyAlertEnabled ? 'Attiva' : 'Disattiva'),
+    ]),
+  );
+
+  Widget _summaryLine(String label, String value) => Padding(
+    padding: const EdgeInsets.only(bottom: 5),
+    child: Row(children: [
+      Expanded(child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF888888)))),
+      Text(value, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+    ]),
+  );
+
+  Widget _sectionHeader(String title) => Padding(
+    padding: const EdgeInsets.only(top: 20, bottom: 10),
+    child: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF444444))),
+  );
+
+  Widget _settingsCard({required List<Widget> children}) => Container(
+    decoration: BoxDecoration(
+      color: Colors.white, borderRadius: BorderRadius.circular(16),
+      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2))],
+    ),
+    child: Column(children: children),
+  );
+
+  Widget _divider() => const Divider(height: 0, thickness: 0.5, indent: 16, endIndent: 16, color: Color(0xFFF0F0F0));
+
+  Widget _sliderRow({
+    required String icon, required String label, required String unit,
+    required double value, required double min, required double max,
+    required int divisions, required ValueChanged<double> onChanged, required String displayValue,
+  }) => Padding(
+    padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Text(icon, style: const TextStyle(fontSize: 16)),
+        const SizedBox(width: 8),
+        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+        const Spacer(),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+          decoration: BoxDecoration(color: const Color(0xFFFFF3EF), borderRadius: BorderRadius.circular(20)),
+          child: Text('$displayValue $unit'.trim(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: Color(0xFFE8440A))),
+        ),
+      ]),
+      SliderTheme(
+        data: SliderThemeData(
+          activeTrackColor: const Color(0xFFE8440A),
+          inactiveTrackColor: const Color(0xFFF0EDEA),
+          thumbColor: const Color(0xFFE8440A),
+          overlayColor: const Color(0xFFE8440A).withOpacity(0.15),
+          trackHeight: 3,
+          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+        ),
+        child: Slider(value: value, min: min, max: max, divisions: divisions, onChanged: onChanged),
+      ),
+    ]),
+  );
+
+  Widget _toggleRow({
+    required String icon, required String label, required String subtitle,
+    required bool value, required ValueChanged<bool> onChanged,
+  }) => Padding(
+    padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+    child: Row(children: [
+      Text(icon, style: const TextStyle(fontSize: 16)),
+      const SizedBox(width: 10),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+        Text(subtitle, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFFAAAAAA))),
+      ])),
+      Switch(
+        value: value, onChanged: onChanged,
+        activeColor: const Color(0xFFE8440A),
+        inactiveThumbColor: const Color(0xFFCCCCCC),
+        inactiveTrackColor: const Color(0xFFEEEEEE),
+      ),
+    ]),
+  );
+}
+
+// ─────────────────────────────────────────────
+// EXERCISES SCREEN
 // ─────────────────────────────────────────────
 
 class ExercisesScreen extends StatelessWidget {
   const ExercisesScreen({super.key});
 
   static const _categories = [
-    {
-      'label': 'Respirazione',
-      'color': Color(0xFFB8D4F0),
-      'emoji': '🧘',
-    },
-    {
-      'label': 'Fitness',
-      'color': Color(0xFFA8D8B0),
-      'emoji': '🏋️',
-    },
-    {
-      'label': 'Postura',
-      'color': Color(0xFFBBABD8),
-      'emoji': '🚶',
-    },
+    {'label': 'Respirazione', 'color': Color(0xFFB8D4F0), 'emoji': '🧘'},
+    {'label': 'Fitness', 'color': Color(0xFFA8D8B0), 'emoji': '🏋️'},
+    {'label': 'Postura', 'color': Color(0xFFBBABD8), 'emoji': '🚶'},
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 12),
-        // Search bar
-        Padding(
+    return Column(children: [
+      const SizedBox(height: 12),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: const Color(0xFFE0DDD8), width: 0.5),
+          ),
+          child: const Row(children: [
+            SizedBox(width: 14),
+            Icon(Icons.search, size: 18, color: Color(0xFFAAAAAA)),
+            SizedBox(width: 8),
+            Expanded(child: Text('Cosa stai cercando?',
+                style: TextStyle(fontSize: 13, color: Color(0xFFBBBBBB), fontWeight: FontWeight.w600))),
+            Text('🔥', style: TextStyle(fontSize: 16)),
+            SizedBox(width: 14),
+          ]),
+        ),
+      ),
+      const SizedBox(height: 20),
+      Expanded(
+        child: ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 18),
-          child: Container(
-            height: 44,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(color: const Color(0xFFE0DDD8), width: 0.5),
-            ),
-            child: Row(children: [
-              const SizedBox(width: 14),
-              const Icon(Icons.search, size: 18, color: Color(0xFFAAAAAA)),
-              const SizedBox(width: 8),
-              const Expanded(
-                child: Text('Cosa stai cercando?',
-                    style: TextStyle(fontSize: 13, color: Color(0xFFBBBBBB), fontWeight: FontWeight.w600)),
-              ),
-              const Text('🔥', style: TextStyle(fontSize: 16)),
-              const SizedBox(width: 14),
-            ]),
-          ),
+          itemCount: _categories.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 14),
+          itemBuilder: (context, i) {
+            final cat = _categories[i];
+            final isPostura = cat['label'] == 'Postura';
+            return GestureDetector(
+              onTap: isPostura
+                  ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExerciseDetailScreen()))
+                  : null,
+              child: _CategoryCard(label: cat['label'] as String, color: cat['color'] as Color, emoji: cat['emoji'] as String),
+            );
+          },
         ),
-        const SizedBox(height: 20),
-        // Category cards
-        Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: 18),
-            itemCount: _categories.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 14),
-            itemBuilder: (context, i) {
-              final cat = _categories[i];
-              final isPostura = cat['label'] == 'Postura';
-              return GestureDetector(
-                onTap: isPostura
-                    ? () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const ExerciseDetailScreen()))
-                    : null,
-                child: _CategoryCard(
-                  label: cat['label'] as String,
-                  color: cat['color'] as Color,
-                  emoji: cat['emoji'] as String,
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
-    );
+      ),
+      const SizedBox(height: 16),
+    ]);
   }
 }
 
@@ -451,52 +1145,25 @@ class _CategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 110,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20),
-      ),
+      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20)),
       clipBehavior: Clip.hardEdge,
-      child: Stack(
-        children: [
-          // Decorative blob
-          Positioned(
-            right: -20, bottom: -20,
-            child: Container(
-              width: 120, height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.18),
-              ),
-            ),
-          ),
-          // Large emoji
-          Positioned(
-            right: 18, top: 0, bottom: 0,
-            child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 52)),
-            ),
-          ),
-          // Label
-          Positioned(
-            left: 20, top: 0, bottom: 0,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
-              ],
-            ),
-          ),
-        ],
-      ),
+      child: Stack(children: [
+        Positioned(right: -20, bottom: -20,
+          child: Container(width: 120, height: 120,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.white.withOpacity(0.18)))),
+        Positioned(right: 18, top: 0, bottom: 0,
+          child: Center(child: Text(emoji, style: const TextStyle(fontSize: 52)))),
+        Positioned(left: 20, top: 0, bottom: 0,
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(label, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+          ])),
+      ]),
     );
   }
 }
 
 // ─────────────────────────────────────────────
-// EXERCISE DETAIL SCREEN  (schermata 1)
+// EXERCISE DETAIL SCREEN
 // ─────────────────────────────────────────────
 
 class ExerciseDetailScreen extends StatelessWidget {
@@ -515,117 +1182,73 @@ class ExerciseDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8F5),
       body: SafeArea(
-        child: Column(
-          children: [
-            // App bar
-            Padding(
-              padding: const EdgeInsets.only(left: 4, top: 4, right: 18, bottom: 4),
-              child: Row(children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Color(0xFF555555)),
-                  onPressed: () => Navigator.pop(context),
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4, top: 4, right: 18, bottom: 4),
+            child: Row(children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new, size: 18, color: Color(0xFF555555)),
+                onPressed: () => Navigator.pop(context),
+              ),
+              const Text('Esercizio Guidato',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+            ]),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Stack(alignment: Alignment.center, children: [
+                  Container(height: 190, width: double.infinity, color: const Color(0xFFD4C5B8),
+                    child: const Center(child: Text('🧘', style: TextStyle(fontSize: 64)))),
+                  Container(height: 190,
+                    decoration: BoxDecoration(gradient: LinearGradient(
+                      begin: Alignment.topCenter, end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Colors.black.withOpacity(0.28)]))),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    _VideoBtn(icon: Icons.skip_previous_rounded),
+                    const SizedBox(width: 16),
+                    Container(width: 44, height: 44,
+                      decoration: BoxDecoration(color: Colors.white.withOpacity(0.92), shape: BoxShape.circle),
+                      child: const Icon(Icons.pause_rounded, size: 26, color: Color(0xFF1A1A1A))),
+                    const SizedBox(width: 16),
+                    _VideoBtn(icon: Icons.skip_next_rounded),
+                  ]),
+                  const Positioned(left: 14, bottom: 10,
+                    child: Text('Esercizio', style: TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w600))),
+                ]),
+                Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    RichText(text: const TextSpan(
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), height: 1.25, fontFamily: 'Nunito'),
+                      children: [
+                        TextSpan(text: '6 Minuti per Schiena e\nMente: '),
+                        TextSpan(text: 'Postura', style: TextStyle(color: Color(0xFFB060D0))),
+                        TextSpan(text: ' e '),
+                        TextSpan(text: 'Calma', style: TextStyle(color: Color(0xFF4ABFA0))),
+                      ],
+                    )),
+                    const SizedBox(height: 12),
+                    RichText(text: const TextSpan(
+                      style: TextStyle(fontSize: 13, color: Color(0xFF444444), height: 1.6, fontFamily: 'Nunito'),
+                      children: [
+                        TextSpan(text: 'Questa pratica guidata combina '),
+                        TextSpan(text: 'respirazione diaframmatica', style: TextStyle(fontWeight: FontWeight.w700)),
+                        TextSpan(text: ', mobilità dolce e esercizi isometrici per migliorare l\'allineamento posturale e '),
+                        TextSpan(text: 'ridurre la tensione muscolare', style: TextStyle(fontWeight: FontWeight.w700)),
+                        TextSpan(text: '. Adatta a chi passa molte ore al computer.\nLivello: principiante. Attrezzature: sedia stabile.\nSerie consigliata: giornaliera.'),
+                      ],
+                    )),
+                    const SizedBox(height: 22),
+                    const Text('Contenuto', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+                    const SizedBox(height: 14),
+                    ..._steps.map((s) => _StepTile(step: s)),
+                  ]),
                 ),
-                const Text('Esercizio Guidato',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
               ]),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Video thumbnail
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          height: 190,
-                          width: double.infinity,
-                          color: const Color(0xFFD4C5B8),
-                          child: const Center(
-                            child: Text('🧘', style: TextStyle(fontSize: 64)),
-                          ),
-                        ),
-                        // Overlay gradient
-                        Container(
-                          height: 190,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [Colors.transparent, Colors.black.withOpacity(0.28)],
-                            ),
-                          ),
-                        ),
-                        // Play/pause controls
-                        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                          _VideoBtn(icon: Icons.skip_previous_rounded),
-                          const SizedBox(width: 16),
-                          Container(
-                            width: 44, height: 44,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.92), shape: BoxShape.circle,
-                            ),
-                            child: const Icon(Icons.pause_rounded, size: 26, color: Color(0xFF1A1A1A)),
-                          ),
-                          const SizedBox(width: 16),
-                          _VideoBtn(icon: Icons.skip_next_rounded),
-                        ]),
-                        // Label bottom-left
-                        const Positioned(
-                          left: 14, bottom: 10,
-                          child: Text('Esercizio', style: TextStyle(fontSize: 11, color: Colors.white70, fontWeight: FontWeight.w600)),
-                        ),
-                      ],
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Title
-                          RichText(
-                            text: const TextSpan(
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), height: 1.25, fontFamily: 'Nunito'),
-                              children: [
-                                TextSpan(text: '6 Minuti per Schiena e\nMente: '),
-                                TextSpan(text: 'Postura', style: TextStyle(color: Color(0xFFB060D0))),
-                                TextSpan(text: ' e '),
-                                TextSpan(text: 'Calma', style: TextStyle(color: Color(0xFF4ABFA0))),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          // Description
-                          RichText(
-                            text: const TextSpan(
-                              style: TextStyle(fontSize: 13, color: Color(0xFF444444), height: 1.6, fontFamily: 'Nunito'),
-                              children: [
-                                TextSpan(text: 'Questa pratica guidata combina '),
-                                TextSpan(text: 'respirazione diaframmatica', style: TextStyle(fontWeight: FontWeight.w700)),
-                                TextSpan(text: ', mobilità dolce e esercizi isometrici per migliorare l\'allineamento posturale e '),
-                                TextSpan(text: 'ridurre la tensione muscolare', style: TextStyle(fontWeight: FontWeight.w700)),
-                                TextSpan(text: '. Adatta a chi passa molte ore al computer.\nLivello: principiante. Attrezzature: sedia stabile.\nSerie consigliata: giornaliera.'),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 22),
-                          // Contenuto header
-                          const Text('Contenuto',
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
-                          const SizedBox(height: 14),
-                          // Steps
-                          ..._steps.map((s) => _StepTile(step: s)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
   }
@@ -659,10 +1282,7 @@ class _StepTile extends StatelessWidget {
         text: TextSpan(
           style: const TextStyle(fontSize: 13, color: Color(0xFF444444), height: 1.55, fontFamily: 'Nunito'),
           children: [
-            TextSpan(
-              text: '${step.time}  ',
-              style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A)),
-            ),
+            TextSpan(text: '${step.time}  ', style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
             TextSpan(text: step.description),
           ],
         ),
