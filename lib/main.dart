@@ -72,7 +72,7 @@ class _BottomNav extends StatelessWidget {
     {'icon': Icons.directions_run, 'label': 'Esercizi'},
     {'icon': Icons.home_outlined, 'label': 'Home'},
     {'icon': Icons.calendar_today_outlined, 'label': 'Calendario'},
-    {'icon': Icons.settings_outlined, 'label': 'Impostazioni'},
+    {'icon': Icons.settings_outlined, 'label': 'Il Mio Profilo'},
   ];
 
   @override
@@ -229,8 +229,11 @@ class _HomeBodyState extends State<HomeBody> with SingleTickerProviderStateMixin
         decoration: BoxDecoration(
           color: const Color(0xFF1A1A1A),
           borderRadius: BorderRadius.circular(16),
+          border: Border(
+            left: BorderSide(color: const Color(0xFFE8440A), width: 4),
+          ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Row(children: [
           Container(
             width: 38, height: 38,
@@ -310,14 +313,56 @@ class _HomeBodyState extends State<HomeBody> with SingleTickerProviderStateMixin
     ),
     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
     child: Row(children: [
-      _buildMetric('♥', '87', 'bpm'),
+      _buildMetric('👟', '3000', 'passi'),
       _buildDiv(),
       _buildMetric('🫁', '78%', 'SpO2'),
       _buildDiv(),
       _buildMetric('💤', '7h', 'sonno'),
       _buildDiv(),
-      _buildMetric('👟', '5768', 'passi'),
+      _buildHrvMetric(),
     ]),
+  );
+
+  Widget _buildHrvMetric() => Expanded(
+    child: GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Row(children: [
+              Text('❤️‍🩹', style: TextStyle(fontSize: 20)),
+              SizedBox(width: 8),
+              Text('HRV — Variabilità', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+            ]),
+            content: const Text(
+              'La Variabilità della Frequenza Cardiaca (HRV) misura le piccole variazioni di tempo tra un battito e l\'altro.\n\n'
+              '• Alta HRV → sistema nervoso rilassato e reattivo\n'
+              '• Bassa HRV → stress elevato o recupero insufficiente\n\n'
+              'Valori normali: 20–100 ms (dipende da età e condizione fisica).\n'
+              'Il tuo valore attuale è nella norma. 💚',
+              style: TextStyle(fontSize: 13, color: Color(0xFF444444), height: 1.5),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Capito!', style: TextStyle(fontWeight: FontWeight.w800, color: Color(0xFFE8440A))),
+              ),
+            ],
+          ),
+        );
+      },
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const Text('❤️‍🩹', style: TextStyle(fontSize: 16)),
+        const SizedBox(height: 2),
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+          Text('42', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFF1A1A1A))),
+          SizedBox(width: 2),
+          Icon(Icons.info_outline, size: 10, color: Color(0xFFE8440A)),
+        ]),
+        const Text('HRV ms', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w600, color: Color(0xFFAAAAAA))),
+      ]),
+    ),
   );
 
   Widget _buildMetric(String icon, String value, String unit) => Expanded(
@@ -335,6 +380,16 @@ class _HomeBodyState extends State<HomeBody> with SingleTickerProviderStateMixin
     decoration: BoxDecoration(color: const Color(0xFFE8440A), borderRadius: BorderRadius.circular(16)),
     padding: const EdgeInsets.all(14),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.25),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: const Text('⚠️  Pausa consigliata',
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.white)),
+      ),
       RichText(
         text: const TextSpan(
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white, height: 1.45, fontFamily: 'Nunito'),
@@ -867,7 +922,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: Row(children: [
           const Icon(Icons.settings_outlined, size: 22, color: Color(0xFFE8440A)),
           const SizedBox(width: 10),
-          const Text('Impostazioni', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
+          const Text('Il Mio Profilo', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A))),
           const Spacer(),
           if (_savedIndicator)
             Container(
@@ -967,7 +1022,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                   Icon(Icons.save_outlined, color: Colors.white, size: 18),
                   SizedBox(width: 8),
-                  Text('Salva Impostazioni', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
+                  Text('Salva profilo', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: Colors.white)),
                 ]),
               ),
             ),
@@ -1079,10 +1134,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 // EXERCISES SCREEN
 // ─────────────────────────────────────────────
 
-class ExercisesScreen extends StatelessWidget {
+class ExercisesScreen extends StatefulWidget {
   const ExercisesScreen({super.key});
+  @override
+  State<ExercisesScreen> createState() => _ExercisesScreenState();
+}
 
-  static const _categories = [
+class _ExercisesScreenState extends State<ExercisesScreen> {
+  String _activeFilter = 'Tutti';
+
+  static const _filters = ['Tutti', 'Respirazione', 'Fitness', 'Postura'];
+
+  static const _allCategories = [
     {'label': 'Respirazione', 'color': Color(0xFFB8D4F0), 'emoji': '🧘'},
     {'label': 'Fitness', 'color': Color(0xFFA8D8B0), 'emoji': '🏋️'},
     {'label': 'Postura', 'color': Color(0xFFBBABD8), 'emoji': '🚶'},
@@ -1090,6 +1153,10 @@ class ExercisesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final categories = _activeFilter == 'Tutti'
+        ? _allCategories
+        : _allCategories.where((c) => c['label'] == _activeFilter).toList();
+
     return Column(children: [
       const SizedBox(height: 12),
       Padding(
@@ -1112,14 +1179,48 @@ class ExercisesScreen extends StatelessWidget {
           ]),
         ),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: 12),
+      // P2 — Barra filtri sticky sopra la lista
+      SizedBox(
+        height: 36,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+          itemCount: _filters.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (context, i) {
+            final f = _filters[i];
+            final isActive = f == _activeFilter;
+            return GestureDetector(
+              onTap: () => setState(() => _activeFilter = f),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  color: isActive ? const Color(0xFFE8440A) : Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isActive ? const Color(0xFFE8440A) : const Color(0xFFDDDDDD),
+                    width: 1,
+                  ),
+                ),
+                child: Text(f, style: TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w800,
+                  color: isActive ? Colors.white : const Color(0xFF555555),
+                )),
+              ),
+            );
+          },
+        ),
+      ),
+      const SizedBox(height: 12),
       Expanded(
         child: ListView.separated(
           padding: const EdgeInsets.symmetric(horizontal: 18),
-          itemCount: _categories.length,
+          itemCount: categories.length,
           separatorBuilder: (_, __) => const SizedBox(height: 14),
           itemBuilder: (context, i) {
-            final cat = _categories[i];
+            final cat = categories[i];
             final isPostura = cat['label'] == 'Postura';
             return GestureDetector(
               onTap: isPostura
@@ -1310,6 +1411,7 @@ class _BreathingScreenState extends State<BreathingScreen> with TickerProviderSt
   late Animation<double> _scaleAnim;
   late Animation<double> _pulseAnim;
   String _breathLabel = 'Inspira';
+  String _breathSubLabel = '4 secondi';
 
   @override
   void initState() {
@@ -1319,8 +1421,13 @@ class _BreathingScreenState extends State<BreathingScreen> with TickerProviderSt
         CurvedAnimation(parent: _breathController, curve: Curves.easeInOut));
     _breathController.addStatusListener((status) {
       if (!_isPlaying) return;
-      if (status == AnimationStatus.completed) { setState(() => _breathLabel = 'Espira'); _breathController.reverse(); }
-      else if (status == AnimationStatus.dismissed) { setState(() => _breathLabel = 'Inspira'); _breathController.forward(); }
+      if (status == AnimationStatus.completed) {
+        setState(() { _breathLabel = 'Espira'; _breathSubLabel = '6 secondi'; });
+        _breathController.reverse();
+      } else if (status == AnimationStatus.dismissed) {
+        setState(() { _breathLabel = 'Inspira'; _breathSubLabel = '4 secondi'; });
+        _breathController.forward();
+      }
     });
     _breathController.forward();
     _pulseController = AnimationController(vsync: this, duration: const Duration(seconds: 4))..repeat(reverse: true);
@@ -1352,6 +1459,29 @@ class _BreathingScreenState extends State<BreathingScreen> with TickerProviderSt
     final s = _secondsLeft % 60;
     return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
+
+  Widget _breathStep(String label, String duration, bool isActive) => AnimatedContainer(
+    duration: const Duration(milliseconds: 300),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    decoration: BoxDecoration(
+      color: isActive ? const Color(0xFFE8440A).withOpacity(0.12) : Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(
+        color: isActive ? const Color(0xFFE8440A).withOpacity(0.4) : Colors.transparent,
+        width: 1,
+      ),
+    ),
+    child: Column(children: [
+      Text(label, style: TextStyle(
+        fontSize: 12, fontWeight: FontWeight.w800,
+        color: isActive ? const Color(0xFFE8440A) : const Color(0xFFAAAAAA),
+      )),
+      Text(duration, style: TextStyle(
+        fontSize: 10, fontWeight: FontWeight.w600,
+        color: isActive ? const Color(0xFF3A2010) : const Color(0xFFCCCCCC),
+      )),
+    ]),
+  );
 
   @override
   void dispose() {
@@ -1388,17 +1518,22 @@ class _BreathingScreenState extends State<BreathingScreen> with TickerProviderSt
                     child: Container(width: 200, height: 200,
                       decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xFFE8440A).withOpacity(0.13)))),
                   Transform.scale(scale: _scaleAnim.value,
-                    child: Container(width: 200, height: 200,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFEA9070).withOpacity(0.28),
-                        border: Border.all(color: const Color(0xFFE8440A), width: 2),
+                    child: Semantics(
+                      label: '$_breathLabel per $_breathSubLabel',
+                      child: Container(width: 200, height: 200,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFFEA9070).withOpacity(0.28),
+                          border: Border.all(color: const Color(0xFFE8440A), width: 2),
+                        ),
+                        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          _LungsIcon(size: 44, color: const Color(0xFF3A2010)),
+                          const SizedBox(height: 8),
+                          Text(_breathLabel, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF3A2010))),
+                          const SizedBox(height: 2),
+                          Text(_breathSubLabel, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF7A5040))),
+                        ]),
                       ),
-                      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        _LungsIcon(size: 44, color: const Color(0xFF3A2010)),
-                        const SizedBox(height: 8),
-                        Text(_breathLabel, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF3A2010))),
-                      ]),
                     )),
                   Transform.rotate(angle: _orbitController.value * 2 * pi,
                     child: Transform.translate(offset: const Offset(0, -104),
@@ -1409,6 +1544,16 @@ class _BreathingScreenState extends State<BreathingScreen> with TickerProviderSt
             },
           ),
           const Spacer(),
+          // P5 — istruzioni testuali affiancate all'animazione (accessibilità)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+              _breathStep('Inspira', '4s', _breathLabel == 'Inspira'),
+              _breathStep('Tieni', '—', false),
+              _breathStep('Espira', '6s', _breathLabel == 'Espira'),
+            ]),
+          ),
+          const SizedBox(height: 20),
           Text(_timerLabel,
               style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w900, color: Color(0xFF1A1A1A), letterSpacing: 2)),
           const SizedBox(height: 28),
