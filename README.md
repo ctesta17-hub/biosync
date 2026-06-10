@@ -66,7 +66,7 @@ flutter run
 
 * Flutter
 * Dart
-* Material Desig
+* Material Design
 
 ## 📄 License
 
