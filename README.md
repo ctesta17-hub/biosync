@@ -2,6 +2,15 @@
 
 A Flutter application designed to provide a seamless and intuitive user experience.
 
+## Screenshots
+
+<img src="screenshots/home.png" width="250">
+<img src="screenshots/exercise.png" width="250">
+<img src="screenshots/home.png" width="250">
+<img src="screenshots/breathExercise.png" width="250">
+<img src="screenshots/settings.png" width="250">
+<img src="screenshots/smartBreak.png" width="250">
+
 ## 🚀 Getting Started
 
 ### Prerequisites
