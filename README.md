@@ -4,12 +4,14 @@ A Flutter application designed to provide a seamless and intuitive user experien
 
 ## Screenshots
 
-<img src="screenshots/home.png" width="250">
-<img src="screenshots/exercise.png" width="250">
-<img src="screenshots/home.png" width="250">
-<img src="screenshots/breathExercise.png" width="250">
-<img src="screenshots/settings.png" width="250">
-<img src="screenshots/smartBreak.png" width="250">
+<p align="center">
+  <img src="screenshots/home.png" width="250">
+  <img src="screenshots/exercise.png" width="250">
+  <img src="screenshots/exerciseDetail.png" width="250">
+  <img src="screenshots/breathExercise.png" width="250">
+  <img src="screenshots/settings.png" width="250">
+  <img src="screenshots/smartBreak.png" width="250">
+</p>
 
 ## 🚀 Getting Started
 
